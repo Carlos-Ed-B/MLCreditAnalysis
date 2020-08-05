@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Infrastructure.Layer\Infrastructure.Layer.csproj" />
+    <ProjectReference Include="..\ML.Services\ML.Services.csproj" />
+    <ProjectReference Include="..\MLCreditAnalysis.Model\CreditAnalysis.Model.csproj" />
+  </ItemGroup>
+
+</Project>

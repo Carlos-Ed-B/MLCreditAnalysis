@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="IBM.Cloud.SDK.Core" Version="1.1.0" />
+    <PackageReference Include="IBM.Watson.Common" Version="4.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MLCreditAnalysis.Model\CreditAnalysis.Model.csproj" />
+  </ItemGroup>
+
+</Project>
