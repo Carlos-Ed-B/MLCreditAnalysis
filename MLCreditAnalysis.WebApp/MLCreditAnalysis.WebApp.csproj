@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>0ae59677-d8af-43e2-9611-1b8e83f11c30</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="3.1.6" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.8" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.3" />
+    <PackageReference Include="Serilog" Version="2.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CreditAnalysis.Service\CreditAnalysis.Service.csproj" />
+    <ProjectReference Include="..\Infrastructure.Layer\Infrastructure.Layer.csproj" />
+    <ProjectReference Include="..\ML.Services\ML.Services.csproj" />
+    <ProjectReference Include="..\MLCreditAnalysis.Model\CreditAnalysis.Model.csproj" />
+  </ItemGroup>
+
+
+
+</Project>
