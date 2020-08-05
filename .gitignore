@@ -1,0 +1,52 @@
+*.swp
+*.*~
+project.lock.json
+.DS_Store
+*.pyc
+nupkg/
+
+# Visual Studio Code
+.vscode
+
+# Rider
+.idea
+
+# User-specific files
+*.log
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.editorconfig
+*.jfm
+*.dbmdl
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+[Ll]ogs/
+[Tt]estResults/
+.sonarqube/
+tools/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Pp]ackages/
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+# Visual Studio 2015
+.vs/
+
+#files
+MLCreditAnalysis.WebApp/appsettings.Development.json
+MLCreditAnalysis.Test/appsettings.Development.json
+MLCreditAnalysis/MLCreditAnalysis.WebApp/appsettings.Development.json
+MLCreditAnalysis/MLCreditAnalysis.Test/appsettings.Development.json
