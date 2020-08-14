@@ -24,7 +24,7 @@ namespace MLCreditAnalysis.Test.Base
             _projetctPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName;
 
             var configBuilder = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: true)
                 .AddEnvironmentVariables();
 
             this._configuration = configBuilder.Build();

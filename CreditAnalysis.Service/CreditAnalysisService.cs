@@ -14,6 +14,7 @@ using ML.Services.IBM.Helpers;
 using ML.Services.IBM.Model;
 using ML.Services.IBM.Model.Enums;
 using ML.Services.Models;
+using ML.Services.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -26,17 +27,33 @@ namespace CreditAnalysis.Service
     {
         private readonly IIBMVisualRecognitionService _ibmVisualRecognitionService;
         private readonly IAzureVisualRecognitionService _azureVisualRecognitionService;
-        public CreditAnalysisService(IIBMVisualRecognitionService ibmVisualRecognitionService, IAzureVisualRecognitionService azureVisualRecognitionService)
+        private readonly ICreditAnalysisMLService _creditAnalysisMLService;
+        public CreditAnalysisService(IIBMVisualRecognitionService ibmVisualRecognitionService, IAzureVisualRecognitionService azureVisualRecognitionService, ICreditAnalysisMLService creditAnalysisMLService)
         {
             this._ibmVisualRecognitionService = ibmVisualRecognitionService;
             this._azureVisualRecognitionService = azureVisualRecognitionService;
+            this._creditAnalysisMLService = creditAnalysisMLService;
         }
 
         public async Task<bool> DoCreditAnalysis(ClientCreditAnalysisModel clientCreditAnalysisModel)
         {
-            if (clientCreditAnalysisModel.FileUploadByte == null)
+            if (clientCreditAnalysisModel.FileUploadByte == null && clientCreditAnalysisModel.FileUpload != null)
             {
                 clientCreditAnalysisModel.FileUploadByte = clientCreditAnalysisModel.FileUpload.ToFileBytes();
+            }
+
+            if (!string.IsNullOrEmpty(clientCreditAnalysisModel.ImageFileUploadBase64))
+            {
+                var base64 = clientCreditAnalysisModel.ImageFileUploadBase64;
+
+                if (base64.Contains(","))
+                {
+                    base64 = base64.Split(',')[1];
+                }
+
+                clientCreditAnalysisModel.ImageFileUploadBase64 = base64;
+
+                clientCreditAnalysisModel.FileUploadByte = Helper.ImageBase64ToByte(clientCreditAnalysisModel.ImageFileUploadBase64);
             }
 
             clientCreditAnalysisModel.Id = DateTime.Now.ToFileName();
@@ -65,8 +82,34 @@ namespace CreditAnalysis.Service
             classifyPersonalResultModel.VisionFaceResul = await this.ClassifyPersonalData(clientCreditAnalysisModel);
             classifyPersonalResultModel.Status = this.IsValid();
             classifyPersonalResultModel.MessageError = this.GetFirstError();
-            clientCreditAnalysisModel.VisionFaceAge = classifyPersonalResultModel.VisionFaceResul.FirstOrDefault().FaceAttributes.Age;
-            clientCreditAnalysisModel.VisionFaceGender = classifyPersonalResultModel.VisionFaceResul.FirstOrDefault().FaceAttributes.Gender;
+            
+            if (classifyPersonalResultModel.VisionFaceResul.Any())
+            {
+                clientCreditAnalysisModel.VisionFaceAge = classifyPersonalResultModel.VisionFaceResul.FirstOrDefault().FaceAttributes.Age;
+                clientCreditAnalysisModel.VisionFaceGender = classifyPersonalResultModel.VisionFaceResul.FirstOrDefault().FaceAttributes.Gender;
+            }
+
+            var creditAnalysisMLModel = new CreditAnalysisMLModel()
+            {
+                Casapropria = clientCreditAnalysisModel.OwnHome ? 1 : 0,
+                Escolaridade = clientCreditAnalysisModel.Schooling,
+                Estadocivil = clientCreditAnalysisModel.MaritalStatus,
+                Etnia = clientCreditAnalysisModel.Ethnicity,
+                Idade = clientCreditAnalysisModel.Age,
+                Nome = clientCreditAnalysisModel.Name,
+                Outrasrendas = clientCreditAnalysisModel.ExtraSalary ? 1 : 0,
+                Sexo = clientCreditAnalysisModel.Gender == Model.Enums.GenderEnum.Male ? 1 : 0,
+                Renda = clientCreditAnalysisModel.Salary,
+                ModelType = (CreditAnalysisModelTypeEnum)clientCreditAnalysisModel.ModelType.ToInteger()
+            };
+
+            classifyPersonalResultModel.CreditAnalysisScore = await this._creditAnalysisMLService.Classify(creditAnalysisMLModel);
+            classifyPersonalResultModel.CreditAnalysisScoreRisk = AnalysisHelper.GetScoreRisk(classifyPersonalResultModel.CreditAnalysisScore);
+
+            if (classifyPersonalResultModel.CreditAnalysisScoreRisk == ScoreRiskEnum.Low || classifyPersonalResultModel.CreditAnalysisScoreRisk == ScoreRiskEnum.VeryLow)
+            {
+                this.AddError("Analise de pagamento em dia baixo.");
+            }
 
             this.DoLogOnEnd(clientCreditAnalysisModel, classifyPersonalResultModel);
 

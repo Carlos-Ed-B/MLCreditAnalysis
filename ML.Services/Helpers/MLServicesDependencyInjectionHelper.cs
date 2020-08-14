@@ -5,9 +5,12 @@ using ML.Services.Azure;
 using ML.Services.Azure.Environments;
 using ML.Services.Azure.Environments.Interfaces;
 using ML.Services.Azure.Interfaces;
+using ML.Services.Environments;
 using ML.Services.IBM;
 using ML.Services.IBM.Environments;
 using ML.Services.IBM.Environments.Interfaces;
+using ML.Services.Services;
+using ML.Services.Services.Interfaces;
 
 namespace ML.Services.Helpers
 {
@@ -19,10 +22,21 @@ namespace ML.Services.Helpers
 
             services.AddTransient<IIBMVisualRecognitionService, IBMVisualRecognitionService>();
             services.AddTransient<IAzureVisualRecognitionService, AzureVisualRecognitionService>();
+            services.AddTransient<ICreditAnalysisMLService, CreditAnalysisMLService>();
         }
 
         private static void FillInTheOptions(this IServiceCollection services, IConfiguration configuration)
         {
+
+            var environmentsOptionBase = new CreditAnalysisEnvironment()
+            {
+                CreditAnalysisApi = configuration.GetSection(nameof(CreditAnalysisEnvironment)).GetValue<string>("CreditAnalysisApi"),
+            };
+
+            services.AddTransient<ICreditAnalysisEnvironment, CreditAnalysisEnvironment>(config =>
+            {
+                return environmentsOptionBase;
+            });
 
             var azureEnvironment = new AzureEnvironment()
             {

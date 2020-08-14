@@ -30,6 +30,7 @@ function onSendFailure() {
 }
 
 $(document).ready(function () {
+    //$("#my_camera").width(445).height(240);
 });
 
 function addButtonLoading() {

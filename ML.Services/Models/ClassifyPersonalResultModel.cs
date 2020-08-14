@@ -1,5 +1,6 @@
 ﻿using IBM.Cloud.SDK.Core.Http;
 using ML.Services.Azure.Models;
+using ML.Services.Enums;
 using ML.Services.IBM.Model;
 using System.Collections.Generic;
 
@@ -12,5 +13,7 @@ namespace ML.Services.Models
         public List<VisionFaceResultModel> VisionFaceResul { get; set; }
         public bool Status { get; set; }
         public string MessageError { get; set; }
+        public double CreditAnalysisScore { get; set; }
+        public ScoreRiskEnum CreditAnalysisScoreRisk { get; set; }
     }
 }

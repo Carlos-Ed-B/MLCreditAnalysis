@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
+using System;
 using System.Drawing;
 using System.IO;
 using System.Text;
@@ -27,6 +28,17 @@ namespace Infrastructure.Layer.Helpers
             }
         }
 
+        public static string ImageToBase64(string imageFilePath)
+        {
+            byte[] imageArray = System.IO.File.ReadAllBytes(imageFilePath);
+            return Convert.ToBase64String(imageArray);
+        }
+
+        public static byte[] ImageBase64ToByte(string stringInBase64)
+        {
+            return System.Convert.FromBase64String(stringInBase64);
+        }
+
         public static MemoryStream ToMemoryStream(string path)
         {
             using (FileStream hondaFilestream = File.OpenRead(path))
@@ -38,6 +50,14 @@ namespace Infrastructure.Layer.Helpers
                     return hondaMemoryStream;
                 }
             }
+        }
+
+        public static async Task<MemoryStream> ToMemoryStream(this IFormFile formFile)
+        {
+            using var memoryStream = new MemoryStream();
+            await formFile.CopyToAsync(memoryStream);
+
+            return memoryStream;
         }
 
         public static IFormFile ToFormFile(string name, string path)
@@ -64,14 +84,6 @@ namespace Infrastructure.Layer.Helpers
         public static byte[] ToFileBytes(this string filePath)
         {
             return System.IO.File.ReadAllBytes(filePath);
-        }
-
-        public static async Task<MemoryStream> ToMemoryStream(this IFormFile formFile)
-        {
-            using var memoryStream = new MemoryStream();
-            await formFile.CopyToAsync(memoryStream);
-
-            return memoryStream;
         }
 
         public static byte[] ToFileBytes(this IFormFile formFile)

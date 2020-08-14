@@ -1,8 +1,6 @@
 ﻿using CreditAnalysis.Model.Enums;
-using Infrastructure.Layer.Helpers.Json;
 using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
-using System.IO;
 using System.Text.Json.Serialization;
 
 namespace CreditAnalysis.Model
@@ -37,6 +35,9 @@ namespace CreditAnalysis.Model
         [Display(Name = "Genero")]
         public GenderEnum Gender { get; set; }
 
+        [Display(Name = "Modelo de Analise")]
+        public CreditAnalysisModelTypeEnum ModelType { get; set; }
+
         [JsonIgnore]
         public byte[] ImageFile { get; set; }
         public string ImageFileBase64 { get; set; }
@@ -44,10 +45,13 @@ namespace CreditAnalysis.Model
         [JsonIgnore]
         public IFormFile FileUpload { get; set; }
         [JsonIgnore]
+        public string ImageFileUploadBase64 { get; set; }
+        [JsonIgnore]
         public byte[] FileUploadByte { get; set; }
 
         public string MessageError { get; set; }
         public long VisionFaceAge { get; set; }
         public string VisionFaceGender { get; set; }
+
     }
 }

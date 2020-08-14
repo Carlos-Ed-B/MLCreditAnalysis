@@ -22,6 +22,11 @@ namespace MLCreditAnalysis.WebApp.Controllers
             return View();
         }
 
+        public IActionResult WebCam()
+        {
+            return View();
+        }
+
         [HttpPost]
         public async Task<ActionResult> IndexAsync(ClientCreditAnalysisModel clientCreditAnalysisModel)
         {

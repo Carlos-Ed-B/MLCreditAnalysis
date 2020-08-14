@@ -1,4 +1,5 @@
 ﻿using ML.Services.Enums;
+using System;
 
 namespace ML.Services.Helpers
 {
@@ -42,6 +43,13 @@ namespace ML.Services.Helpers
             }
 
             return ScoreRiskEnum.VeryHigh;
+        }
+
+        public static ScoreRiskEnum GetScoreRisk(double value)
+        {
+            var valueConvert = (float)value;
+
+            return AnalysisHelper.GetScoreRisk(valueConvert);
         }
     }
 }

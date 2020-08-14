@@ -5,7 +5,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-    <h1>Analise de credito</h1>
+<h1>Analise de credito</h1>
 <hr />
 <div class="row">
     <div class="col-md-12">
@@ -20,89 +20,160 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label asp-for="ModelType" class="control-label"></label>
+                        <select asp-for="ModelType" class="form-control">
+                            <option value=""></option>
+                            <option value="1">Modelo 01</option>
+                            <option value="2">Modelo 02</option>
+                        </select>
+                        <span asp-validation-for="ModelType" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
 
+            <div class="row">
                 <div class="col">
                     <div class="form-group">
                         <label asp-for="Name" class="control-label"></label>
                         <input asp-for="Name" class="form-control" />
                         <span asp-validation-for="Name" class="text-danger"></span>
                     </div>
+                </div>
+            </div>
 
-                    <div class="form-group">
-                        <label asp-for="Gender" class="control-label"></label>
-                        <select asp-for="Gender" class="form-control">
-                            <option value=""></option>
-                            <option value="1">Masculino</option>
-                            <option value="2">Feminino</option>
-                        </select>
-                        <span asp-validation-for="Gender" class="text-danger"></span>
-                    </div>
+            <div class="row">
 
+                <div class="col">
                     <div class="form-group">
                         <label asp-for="Age" class="control-label"></label>
                         <input asp-for="Age" class="form-control" />
                         <span asp-validation-for="Age" class="text-danger"></span>
                     </div>
+                </div>
 
+                <div class="col">
+
+                    <div class="form-group">
+                        <label asp-for="Salary" class="control-label"></label>
+                        <input asp-for="Salary" class="form-control" />
+                        <span asp-validation-for="Salary" class="text-danger"></span>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="row">
+
+                <div class="col">
+                    <div class="form-group">
+                        <label asp-for="Gender" class="control-label"></label>
+                        <select asp-for="Gender" class="form-control">
+                            <option value=""></option>
+                            <option value="1">Masculino</option>
+                            <option value="0">Feminino</option>
+                        </select>
+                        <span asp-validation-for="Gender" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col">
+
+                    <div class="form-group">
+                        <label asp-for="Ethnicity" class="control-label"></label>
+                        <select asp-for="Ethnicity" class="form-control">
+                            <option value=""></option>
+                            <option value="0">Valor 0</option>
+                            <option value="1">Valor 1</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label asp-for="MaritalStatus" class="control-label"></label>
+                        <select asp-for="MaritalStatus" class="form-control">
+                            <option value=""></option>
+                            <option value="0">Valor 0</option>
+                            <option value="1">Valor 1</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label asp-for="Schooling" class="control-label"></label>
+                        <select asp-for="Schooling" class="form-control">
+                            <option value=""></option>
+                            <option value="0">Valor 0</option>
+                            <option value="1">Valor 1</option>
+                            <option value="2">Valor 2</option>
+                        </select>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="row">
+
+                <div class="col">
+                    <div class="form-group form-check">
+                        <label class="form-check-label">
+                            <input class="form-check-input" asp-for="OwnHome" /> @Html.DisplayNameFor(model => model.OwnHome)
+                        </label>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group form-check">
+                        <label class="form-check-label">
+                            <input class="form-check-input" asp-for="ExtraSalary" /> @Html.DisplayNameFor(model => model.ExtraSalary)
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
                     <div class="form-group">
                         <input asp-for="FileUpload" type="file">
                         <span></span>
                     </div>
                 </div>
+                <div class="col">
+                    <div class="form-group">
+                        <input type=button value="Tirar Foto" onClick="take_snapshot()">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <img id="imagemConvertida" />
+                    <div id="snapshotResults"></div>
+                    <input asp-for="ImageFileUploadBase64" class="form-control" type="hidden" />
+                </div>
             </div>
 
-            @*<div class="form-group">
-            <label asp-for="Salary" class="control-label"></label>
-            <input asp-for="Salary" class="form-control" />
-            <span asp-validation-for="Salary" class="text-danger"></span>
-        </div>
+            <div class="row">
+                <div class="col">
+                    <div class="area" style="display:none">
+                        <div id="my_camera"></div>
 
-        <div class="form-group">
-            <label asp-for="Ethnicity" class="control-label"></label>
-            <input asp-for="Ethnicity" class="form-control" />
-            <span asp-validation-for="Ethnicity" class="text-danger"></span>
-        </div>
+                        <input type="text" id="base_img" name="base_img" />
+                        <button type="button" onclick="takeSnapShot()">Tirar foto e salvar</button>
 
-        <div class="form-group">
-            <label asp-for="MaritalStatus" class="control-label"></label>
-            <input asp-for="MaritalStatus" class="form-control" />
-            <span asp-validation-for="MaritalStatus" class="text-danger"></span>
-        </div>
-
-        <div class="form-group">
-            <label asp-for="Schooling" class="control-label"></label>
-            <input asp-for="Schooling" class="form-control" />
-            <span asp-validation-for="Schooling" class="text-danger"></span>
-        </div>*@
-
-            @*<div class="form-group form-check">
-            <label class="form-check-label">
-                <input class="form-check-input" asp-for="OwnHome" /> @Html.DisplayNameFor(model => model.OwnHome)
-            </label>
-        </div>
-
-        <div class="form-group form-check">
-            <label class="form-check-label">
-                <input class="form-check-input" asp-for="ExtraSalary" /> @Html.DisplayNameFor(model => model.ExtraSalary)
-            </label>
-        </div>*@
-
-
+                        <p id="caminhoImagem" class="caminho-imagem"><a href="" target="_blank"></a></p>
+                    </div>
+                </div>
+            </div>
 
 
             <div class="form-group">
-                <input type="submit" class="btn btn-primary" id="btnDoAction" />
+                <input type="submit" class="btn btn-primary btn-block" id="btnDoAction" />
                 <span class="" role="status" aria-hidden="true" id="btnDoActionLoading"></span>
             </div>
 
             <div class="row" style="align-content:center">
                 <img id="imageResult" alt="" style="max-width:300px" />
             </div>
-
-            @*<button class="btn btn-primary" type="button" id="btnSend">
-            <span class="" role="status" aria-hidden="true" id="btnSendLoading"></span>
-            Loading...
-        </button>*@
 
             <div id="formResults"></div>
         </form>
@@ -112,4 +183,24 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script src="~/js/services/CreditAnalysisService.js"></script>
+    <script src="~/js/helpers/webcam.js"></script>
+
+    <script language="JavaScript">
+        Webcam.set({
+            width: 440,
+            height: 330,
+            image_format: 'jpeg',
+            jpeg_quality: 90,
+
+        });
+
+        Webcam.attach('#my_camera');
+
+        function take_snapshot() {
+            Webcam.snap(function (data_uri) {
+                document.getElementById('snapshotResults').innerHTML = '<img src="' + data_uri + '"/>';
+                $("#ImageFileUploadBase64").val(data_uri);
+            });
+        }
+    </script>
 }
