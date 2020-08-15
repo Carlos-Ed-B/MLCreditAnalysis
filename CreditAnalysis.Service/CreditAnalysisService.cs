@@ -35,37 +35,90 @@ namespace CreditAnalysis.Service
             this._creditAnalysisMLService = creditAnalysisMLService;
         }
 
+        /// <summary>
+        /// Responsavel por fazer a analise dos dados do cliente.
+        /// </summary>
         public async Task<bool> DoCreditAnalysisAsync(ClientCreditAnalysisModel clientCreditAnalysisModel)
         {
-            if(clientCreditAnalysisModel.ModelType.ToInteger() == 0)
+            /// Validamos se um modelo foi informado pelo cliente, 
+            if (clientCreditAnalysisModel.ModelType.ToInteger() == 0)
             {
+                /// Em caso de negativa, informamos ao cliente que o modelo nao foi informado
                 this.AddError("Modelo não selecionado");
                 return false;
             }
-            if (clientCreditAnalysisModel.FileUploadByte == null && clientCreditAnalysisModel.FileUpload != null)
-            {
-                clientCreditAnalysisModel.FileUploadByte = clientCreditAnalysisModel.FileUpload.ToFileBytes();
-            }
 
-            if (!string.IsNullOrEmpty(clientCreditAnalysisModel.ImageFileUploadBase64))
-            {
-                var base64 = clientCreditAnalysisModel.ImageFileUploadBase64;
+            /// Preenche os dados do upload
+            this.FillFileByte(clientCreditAnalysisModel);
 
-                if (base64.Contains(","))
-                {
-                    base64 = base64.Split(',')[1];
-                }
-
-                clientCreditAnalysisModel.ImageFileUploadBase64 = base64;
-
-                clientCreditAnalysisModel.FileUploadByte = Helper.ImageBase64ToByte(clientCreditAnalysisModel.ImageFileUploadBase64);
-            }
-
+            /// Gero um ID para o cliente com base na data e hora do envio
             clientCreditAnalysisModel.Id = DateTime.Now.ToFileName();
 
+            /// Faz o log dos dados de entrada para possivel analse posterior em casos de erro ou melhora do modelo
             this.DoLogOnBegin(clientCreditAnalysisModel);
 
-            var creditAnalysisMLModel = new CreditAnalysisMLModel()
+            /// COnverto os dados do request do frontEnd para ToCreditAnalysisMLModel
+            var creditAnalysisMLModel = this.ToCreditAnalysisMLModel(clientCreditAnalysisModel);
+
+            /// Crio o objeto de container de resultado da analise de credito
+            var classifyPersonalResultModel = new ClassifyPersonalResultModel() { };
+
+            /// Faco a analise de risco de credito, e pego o score
+            classifyPersonalResultModel.CreditAnalysisScore = await this._creditAnalysisMLService.ClassifyAsync(creditAnalysisMLModel);
+            /// Crio uma faixa de risco do score
+            classifyPersonalResultModel.CreditAnalysisScoreRisk = AnalysisHelper.GetScoreRisk(classifyPersonalResultModel.CreditAnalysisScore);
+
+            /// Faco a analise de nivel de não pagamento, caso tenho um indice alto de nao pagamento, nego o pedido do cliente
+            if (classifyPersonalResultModel.CreditAnalysisScoreRisk == ScoreRiskEnum.High || classifyPersonalResultModel.CreditAnalysisScoreRisk == ScoreRiskEnum.VeryHigh)
+            {
+                /// Adiciono uma mensagem ao usuario e para o processamento 
+                this.AddError("Analise de pagamento em dia baixo.");
+                clientCreditAnalysisModel.MessageError = this.GetFirstError();
+                return false;
+            }
+
+            /// Faco uma analise da self do cliente, onde analise se existe uma pessoa
+            classifyPersonalResultModel.ClassifyPerson = this.ClassifyPerson(clientCreditAnalysisModel);
+            /// Faco uma analise da self do cliente, onde analise se existe conteudo explicito
+            classifyPersonalResultModel.ClassifyExplicitSex = this.ClassifyExplicitSex(clientCreditAnalysisModel);
+
+            /// Apos a analise da foto, verificamos se ela e valida
+            if (!this.IsValid())
+            {
+                /// Caso nao seja valido, retorno a primeria mensagem de erro ao usuario e para o processamento
+                clientCreditAnalysisModel.MessageError = this.GetFirstError();
+                return this.IsValid();
+            }
+
+            /// Continuamos com a analise
+            /// Fazermos a analise dos dados informados pelo usuario em relacao a self informada por ele
+            classifyPersonalResultModel.VisionFaceResul = await this.ClassifyPersonalDataAsync(clientCreditAnalysisModel);
+
+            /// apos a analise,salvo os dados processados por ela
+            classifyPersonalResultModel.Status = this.IsValid();
+            classifyPersonalResultModel.MessageError = this.GetFirstError();
+
+            ///Caso o processamento de imagem tenha retornado dados
+            if (classifyPersonalResultModel.VisionFaceResul.Any())
+            {
+                /// Pego a idade e genero do processamento
+                clientCreditAnalysisModel.VisionFaceAge = classifyPersonalResultModel.VisionFaceResul.FirstOrDefault().FaceAttributes.Age;
+                clientCreditAnalysisModel.VisionFaceGender = classifyPersonalResultModel.VisionFaceResul.FirstOrDefault().FaceAttributes.Gender;
+            }
+
+            /// Faco o log do pos processamento
+            this.DoLogOnEnd(clientCreditAnalysisModel, classifyPersonalResultModel);
+
+            /// retorno o status do processamento
+            return this.IsValid();
+        }
+
+        /// <summary>
+        /// Faz a conversao do objeto para ToCreditAnalysisMLModel
+        /// </summary>
+        private CreditAnalysisMLModel ToCreditAnalysisMLModel(ClientCreditAnalysisModel clientCreditAnalysisModel)
+        {
+            return new CreditAnalysisMLModel()
             {
                 Casapropria = clientCreditAnalysisModel.OwnHome ? 1 : 0,
                 Escolaridade = clientCreditAnalysisModel.Schooling,
@@ -78,42 +131,41 @@ namespace CreditAnalysis.Service
                 Renda = clientCreditAnalysisModel.Salary,
                 ModelType = (CreditAnalysisModelTypeEnum)clientCreditAnalysisModel.ModelType.ToInteger()
             };
+        }
 
-            var classifyPersonalResultModel = new ClassifyPersonalResultModel() { };
-
-            classifyPersonalResultModel.CreditAnalysisScore = await this._creditAnalysisMLService.ClassifyAsync(creditAnalysisMLModel);
-            classifyPersonalResultModel.CreditAnalysisScoreRisk = AnalysisHelper.GetScoreRisk(classifyPersonalResultModel.CreditAnalysisScore);
-
-            ///Analise de nivel de não pagamento
-            if (classifyPersonalResultModel.CreditAnalysisScoreRisk == ScoreRiskEnum.High || classifyPersonalResultModel.CreditAnalysisScoreRisk == ScoreRiskEnum.VeryHigh)
+        /// <summary>
+        /// Preenche os dados do upload, atualmente temos 2 formas: upload e base64
+        /// </summary>
+        /// <param name="clientCreditAnalysisModel"></param>
+        private void FillFileByte(ClientCreditAnalysisModel clientCreditAnalysisModel)
+        {
+            /// Verifico se o arquivo de upload foi informado
+            if (clientCreditAnalysisModel.FileUploadByte == null && clientCreditAnalysisModel.FileUpload != null)
             {
-                this.AddError("Analise de pagamento em dia baixo.");
-                clientCreditAnalysisModel.MessageError = this.GetFirstError();
-                return false;
+                /// Caso tenha sido informado, converto uploado para byte
+                clientCreditAnalysisModel.FileUploadByte = clientCreditAnalysisModel.FileUpload.ToFileBytes();
+                return;
             }
 
-            classifyPersonalResultModel.ClassifyPerson = this.ClassifyPerson(clientCreditAnalysisModel);
-            classifyPersonalResultModel.ClassifyExplicitSex = this.ClassifyExplicitSex(clientCreditAnalysisModel);
-
-            if (!this.IsValid())
+            /// Verifico se o arquivo base64 foi informado
+            if (!string.IsNullOrEmpty(clientCreditAnalysisModel.ImageFileUploadBase64))
             {
-                clientCreditAnalysisModel.MessageError = this.GetFirstError();
-                return this.IsValid();
+                /// Pego as informacoes do arquivo Base64
+                var base64 = clientCreditAnalysisModel.ImageFileUploadBase64;
+
+                /// O sistema pode aceistar um base64 de 2 formas, um apenas com o base64 e outro com todo o html, por isso, fazemos esse tratamento
+                if (base64.Contains(","))
+                {
+                    ///Caso for um base64 com dados do html, consideramos apenas o base64
+                    base64 = base64.Split(',')[1];
+                }
+
+                /// Atualizamos as informacoes do base64 tratado
+                clientCreditAnalysisModel.ImageFileUploadBase64 = base64;
+
+                /// Convertemos o base64 para byte
+                clientCreditAnalysisModel.FileUploadByte = Helper.ImageBase64ToByte(clientCreditAnalysisModel.ImageFileUploadBase64);
             }
-
-            classifyPersonalResultModel.VisionFaceResul = await this.ClassifyPersonalDataAsync(clientCreditAnalysisModel);
-            classifyPersonalResultModel.Status = this.IsValid();
-            classifyPersonalResultModel.MessageError = this.GetFirstError();
-
-            if (classifyPersonalResultModel.VisionFaceResul.Any())
-            {
-                clientCreditAnalysisModel.VisionFaceAge = classifyPersonalResultModel.VisionFaceResul.FirstOrDefault().FaceAttributes.Age;
-                clientCreditAnalysisModel.VisionFaceGender = classifyPersonalResultModel.VisionFaceResul.FirstOrDefault().FaceAttributes.Gender;
-            }
-
-            this.DoLogOnEnd(clientCreditAnalysisModel, classifyPersonalResultModel);
-
-            return this.IsValid();
         }
 
         /// <summary>
