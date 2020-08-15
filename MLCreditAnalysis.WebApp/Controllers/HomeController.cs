@@ -30,7 +30,7 @@ namespace MLCreditAnalysis.WebApp.Controllers
         [HttpPost]
         public async Task<ActionResult> IndexAsync(ClientCreditAnalysisModel clientCreditAnalysisModel)
         {
-            await this._creditAnalysisService.DoCreditAnalysis(clientCreditAnalysisModel);
+            await this._creditAnalysisService.DoCreditAnalysisAsync(clientCreditAnalysisModel);
 
             return base.ApiResponse(clientCreditAnalysisModel, this._creditAnalysisService);
         }

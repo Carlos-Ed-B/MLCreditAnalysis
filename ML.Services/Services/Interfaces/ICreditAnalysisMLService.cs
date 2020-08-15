@@ -6,6 +6,6 @@ namespace ML.Services.Services.Interfaces
 {
     public interface ICreditAnalysisMLService : IBaseCommunicationMessage
     {
-        Task<double> Classify(CreditAnalysisMLModel creditAnalysisMLModel);
+        Task<double> ClassifyAsync(CreditAnalysisMLModel creditAnalysisMLModel);
     }
 }

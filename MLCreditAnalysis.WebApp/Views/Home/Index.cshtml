@@ -104,9 +104,9 @@
                         <label asp-for="Schooling" class="control-label"></label>
                         <select asp-for="Schooling" class="form-control">
                             <option value=""></option>
-                            <option value="0">Valor 0</option>
-                            <option value="1">Valor 1</option>
-                            <option value="2">Valor 2</option>
+                            <option value="0">Fundamental Incompleto</option>
+                            <option value="1">Fundamental Completo</option>
+                            <option value="2">Superior Completo</option>
                         </select>
                     </div>
 
@@ -147,7 +147,7 @@
             <div class="row">
                 <div class="col">
                     <img id="imagemConvertida" />
-                    <div id="snapshotResults"></div>
+                    <div id="snapshotResults" style="margin: auto"></div>
                     <input asp-for="ImageFileUploadBase64" class="form-control" type="hidden" />
                 </div>
             </div>
@@ -172,7 +172,7 @@
             </div>
 
             <div class="row" style="align-content:center">
-                <img id="imageResult" alt="" style="max-width:300px" />
+                <img id="imageResult" alt="" style="max-width:300px;margin: auto" />
             </div>
 
             <div id="formResults"></div>
@@ -191,6 +191,7 @@
             height: 330,
             image_format: 'jpeg',
             jpeg_quality: 90,
+            //force_flash: false
 
         });
 

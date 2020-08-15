@@ -27,10 +27,25 @@ namespace CreditAnalysis.Test.Services
             clientCreditAnalysisModel.FileUploadByte = Helper.ToFileBytes(imagePathNua02);
 
             var services = this.ServiceProvider.GetService<ICreditAnalysisService>();
-            services.DoCreditAnalysis(clientCreditAnalysisModel);
+            services.DoCreditAnalysisAsync(clientCreditAnalysisModel);
 
             Assert.False(services.IsValid());
+        }
+        [Theory]
+        [MemberData(nameof(ClientCreditAnalysisModelBuilder.GetListValid), MemberType = typeof(ClientCreditAnalysisModelBuilder))]
+        public async Task DoCreditAnalysisDeniedBySalary(ClientCreditAnalysisModel clientCreditAnalysisModel)
+        {
+            var imagePath = @$"{DataSourceFolderPath}coringa-joaquin-phoenix-01.jpg";
 
+            clientCreditAnalysisModel.FileUploadByte = Helper.ToFileBytes(imagePath);
+            clientCreditAnalysisModel.Salary = 200;
+            clientCreditAnalysisModel.Gender = GenderEnum.Male;
+            clientCreditAnalysisModel.ModelType = CreditAnalysisModelTypeEnum.Modelo01;
+
+            var services = this.ServiceProvider.GetService<ICreditAnalysisService>();
+            await services.DoCreditAnalysisAsync(clientCreditAnalysisModel);
+
+            Assert.False(services.IsValid());
         }
 
         [Theory]
@@ -45,7 +60,7 @@ namespace CreditAnalysis.Test.Services
             clientCreditAnalysisModel.ModelType = CreditAnalysisModelTypeEnum.Modelo01;
 
             var services = this.ServiceProvider.GetService<ICreditAnalysisService>();
-            await services.DoCreditAnalysis(clientCreditAnalysisModel);
+            await services.DoCreditAnalysisAsync(clientCreditAnalysisModel);
 
             Assert.True(services.IsValid());
         }
@@ -59,10 +74,10 @@ namespace CreditAnalysis.Test.Services
             clientCreditAnalysisModel.Age = 35;
             clientCreditAnalysisModel.Gender = GenderEnum.Male;
             clientCreditAnalysisModel.ImageFileUploadBase64 = Helper.ImageToBase64(imagePath);
-            clientCreditAnalysisModel.ModelType = CreditAnalysisModelTypeEnum.Modelo01;
+            clientCreditAnalysisModel.ModelType = CreditAnalysisModelTypeEnum.Modelo02;
 
             var services = this.ServiceProvider.GetService<ICreditAnalysisService>();
-            await services.DoCreditAnalysis(clientCreditAnalysisModel);
+            await services.DoCreditAnalysisAsync(clientCreditAnalysisModel);
 
             Assert.True(services.IsValid());
         }
@@ -77,14 +92,14 @@ namespace CreditAnalysis.Test.Services
             {
                 var xxx = imageBase.Split(',')[1];
             }
-            
+
             clientCreditAnalysisModel.Age = 35;
             clientCreditAnalysisModel.Gender = GenderEnum.Male;
             clientCreditAnalysisModel.ImageFileUploadBase64 = imageBase;
             clientCreditAnalysisModel.ModelType = CreditAnalysisModelTypeEnum.Modelo01;
 
             var services = this.ServiceProvider.GetService<ICreditAnalysisService>();
-            await services.DoCreditAnalysis(clientCreditAnalysisModel);
+            await services.DoCreditAnalysisAsync(clientCreditAnalysisModel);
 
             Assert.True(services.IsValid());
         }
@@ -101,7 +116,7 @@ namespace CreditAnalysis.Test.Services
             };
 
             var services = this.ServiceProvider.GetService<ICreditAnalysisService>();
-            await services.ClassifyPersonalData(clientCreditAnalysisModel);
+            await services.ClassifyPersonalDataAsync(clientCreditAnalysisModel);
 
             Assert.True(services.IsValid());
             Assert.True(clientCreditAnalysisModel.ImageFile.Length > 0);
@@ -119,7 +134,7 @@ namespace CreditAnalysis.Test.Services
             };
 
             var services = this.ServiceProvider.GetService<ICreditAnalysisService>();
-            await services.ClassifyPersonalData(clientCreditAnalysisModel);
+            await services.ClassifyPersonalDataAsync(clientCreditAnalysisModel);
 
             Assert.True(services.IsValid());
         }

@@ -8,7 +8,7 @@ namespace CreditAnalysis.Service.Interfaces
 {
     public interface ICreditAnalysisService : IBaseCommunicationMessage
     {
-        Task<bool> DoCreditAnalysis(ClientCreditAnalysisModel clientCreditAnalysisModel);
-        Task<List<VisionFaceResultModel>> ClassifyPersonalData(ClientCreditAnalysisModel clientCreditAnalysisModel, bool saveFaceLandmarksPointOnImage = true);
+        Task<bool> DoCreditAnalysisAsync(ClientCreditAnalysisModel clientCreditAnalysisModel);
+        Task<List<VisionFaceResultModel>> ClassifyPersonalDataAsync(ClientCreditAnalysisModel clientCreditAnalysisModel, bool saveFaceLandmarksPointOnImage = true);
     }
 }

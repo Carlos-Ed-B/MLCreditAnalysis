@@ -35,8 +35,13 @@ namespace CreditAnalysis.Service
             this._creditAnalysisMLService = creditAnalysisMLService;
         }
 
-        public async Task<bool> DoCreditAnalysis(ClientCreditAnalysisModel clientCreditAnalysisModel)
+        public async Task<bool> DoCreditAnalysisAsync(ClientCreditAnalysisModel clientCreditAnalysisModel)
         {
+            if(clientCreditAnalysisModel.ModelType.ToInteger() == 0)
+            {
+                this.AddError("Modelo não selecionado");
+                return false;
+            }
             if (clientCreditAnalysisModel.FileUploadByte == null && clientCreditAnalysisModel.FileUpload != null)
             {
                 clientCreditAnalysisModel.FileUploadByte = clientCreditAnalysisModel.FileUpload.ToFileBytes();
@@ -60,35 +65,6 @@ namespace CreditAnalysis.Service
 
             this.DoLogOnBegin(clientCreditAnalysisModel);
 
-            var classifyPersonalResultModel = new ClassifyPersonalResultModel
-            {
-                ClassifyPerson = this.ClassifyPerson(clientCreditAnalysisModel)
-            };
-
-            if (!this.IsValid())
-            {
-                clientCreditAnalysisModel.MessageError = this.GetFirstError();
-                return this.IsValid();
-            }
-
-            classifyPersonalResultModel.ClassifyExplicitSex = this.ClassifyExplicitSex(clientCreditAnalysisModel);
-
-            if (!this.IsValid())
-            {
-                clientCreditAnalysisModel.MessageError = this.GetFirstError();
-                return this.IsValid();
-            }
-
-            classifyPersonalResultModel.VisionFaceResul = await this.ClassifyPersonalData(clientCreditAnalysisModel);
-            classifyPersonalResultModel.Status = this.IsValid();
-            classifyPersonalResultModel.MessageError = this.GetFirstError();
-            
-            if (classifyPersonalResultModel.VisionFaceResul.Any())
-            {
-                clientCreditAnalysisModel.VisionFaceAge = classifyPersonalResultModel.VisionFaceResul.FirstOrDefault().FaceAttributes.Age;
-                clientCreditAnalysisModel.VisionFaceGender = classifyPersonalResultModel.VisionFaceResul.FirstOrDefault().FaceAttributes.Gender;
-            }
-
             var creditAnalysisMLModel = new CreditAnalysisMLModel()
             {
                 Casapropria = clientCreditAnalysisModel.OwnHome ? 1 : 0,
@@ -98,17 +74,41 @@ namespace CreditAnalysis.Service
                 Idade = clientCreditAnalysisModel.Age,
                 Nome = clientCreditAnalysisModel.Name,
                 Outrasrendas = clientCreditAnalysisModel.ExtraSalary ? 1 : 0,
-                Sexo = clientCreditAnalysisModel.Gender == Model.Enums.GenderEnum.Male ? 1 : 0,
+                Sexo = clientCreditAnalysisModel.Gender == Model.Enums.GenderEnum.Male ? 0 : 1,
                 Renda = clientCreditAnalysisModel.Salary,
                 ModelType = (CreditAnalysisModelTypeEnum)clientCreditAnalysisModel.ModelType.ToInteger()
             };
 
-            classifyPersonalResultModel.CreditAnalysisScore = await this._creditAnalysisMLService.Classify(creditAnalysisMLModel);
+            var classifyPersonalResultModel = new ClassifyPersonalResultModel() { };
+
+            classifyPersonalResultModel.CreditAnalysisScore = await this._creditAnalysisMLService.ClassifyAsync(creditAnalysisMLModel);
             classifyPersonalResultModel.CreditAnalysisScoreRisk = AnalysisHelper.GetScoreRisk(classifyPersonalResultModel.CreditAnalysisScore);
 
-            if (classifyPersonalResultModel.CreditAnalysisScoreRisk == ScoreRiskEnum.Low || classifyPersonalResultModel.CreditAnalysisScoreRisk == ScoreRiskEnum.VeryLow)
+            ///Analise de nivel de não pagamento
+            if (classifyPersonalResultModel.CreditAnalysisScoreRisk == ScoreRiskEnum.High || classifyPersonalResultModel.CreditAnalysisScoreRisk == ScoreRiskEnum.VeryHigh)
             {
                 this.AddError("Analise de pagamento em dia baixo.");
+                clientCreditAnalysisModel.MessageError = this.GetFirstError();
+                return false;
+            }
+
+            classifyPersonalResultModel.ClassifyPerson = this.ClassifyPerson(clientCreditAnalysisModel);
+            classifyPersonalResultModel.ClassifyExplicitSex = this.ClassifyExplicitSex(clientCreditAnalysisModel);
+
+            if (!this.IsValid())
+            {
+                clientCreditAnalysisModel.MessageError = this.GetFirstError();
+                return this.IsValid();
+            }
+
+            classifyPersonalResultModel.VisionFaceResul = await this.ClassifyPersonalDataAsync(clientCreditAnalysisModel);
+            classifyPersonalResultModel.Status = this.IsValid();
+            classifyPersonalResultModel.MessageError = this.GetFirstError();
+
+            if (classifyPersonalResultModel.VisionFaceResul.Any())
+            {
+                clientCreditAnalysisModel.VisionFaceAge = classifyPersonalResultModel.VisionFaceResul.FirstOrDefault().FaceAttributes.Age;
+                clientCreditAnalysisModel.VisionFaceGender = classifyPersonalResultModel.VisionFaceResul.FirstOrDefault().FaceAttributes.Gender;
             }
 
             this.DoLogOnEnd(clientCreditAnalysisModel, classifyPersonalResultModel);
@@ -194,7 +194,7 @@ namespace CreditAnalysis.Service
             }
         }
 
-        public async Task<List<VisionFaceResultModel>> ClassifyPersonalData(ClientCreditAnalysisModel clientCreditAnalysisModel, bool saveFaceLandmarksPointOnImage = true)
+        public async Task<List<VisionFaceResultModel>> ClassifyPersonalDataAsync(ClientCreditAnalysisModel clientCreditAnalysisModel, bool saveFaceLandmarksPointOnImage = true)
         {
             var personalDataList = await this._azureVisualRecognitionService.Classify(clientCreditAnalysisModel.FileUploadByte);
 

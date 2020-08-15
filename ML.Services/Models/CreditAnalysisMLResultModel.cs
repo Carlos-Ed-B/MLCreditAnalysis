@@ -11,4 +11,10 @@ namespace ML.Services.Models
         [JsonProperty("proba")]
         public List<List<double>> Proba { get; set; }
     }
+
+    public class CreditAnalysisML02ResultModel
+    {
+        public List<double> prediction { get; set; }
+    }
+
 }

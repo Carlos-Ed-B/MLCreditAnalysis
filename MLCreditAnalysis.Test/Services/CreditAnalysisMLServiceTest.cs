@@ -18,7 +18,7 @@ namespace CreditAnalysis.Test.Services
             creditAnalysisMLModel.ModelType = CreditAnalysisModelTypeEnum.Modelo01;
 
             var services = this.ServiceProvider.GetService<ICreditAnalysisMLService>();
-            var result = await services.Classify(creditAnalysisMLModel);
+            var result = await services.ClassifyAsync(creditAnalysisMLModel);
 
             Assert.True(result > 0);
             Assert.True(services.IsValid());
@@ -31,7 +31,7 @@ namespace CreditAnalysis.Test.Services
             creditAnalysisMLModel.ModelType = CreditAnalysisModelTypeEnum.Modelo02;
 
             var services = this.ServiceProvider.GetService<ICreditAnalysisMLService>();
-            var result = await services.Classify(creditAnalysisMLModel);
+            var result = await services.ClassifyAsync(creditAnalysisMLModel);
 
             Assert.True(result > 0);
             Assert.True(services.IsValid());

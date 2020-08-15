@@ -25,7 +25,8 @@ namespace CreditAnalysis.Test.Builders
                 OwnHome = true,
                 ExtraSalary = true,
                 MaritalStatus = 0,
-                Schooling = 2
+                Schooling = 2,
+                ModelType = Model.Enums.CreditAnalysisModelTypeEnum.Modelo01
             };
         }
     }
