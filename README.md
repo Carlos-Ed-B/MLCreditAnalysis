@@ -5,7 +5,7 @@ Projeto de análise de credito onde deve analisar os dados informados pelo usuá
 # Arquitetura
 O projeto foi criado com diversas linguagens e plataformas.
 
-FIGURA 01
+![alt text](https://github.com/Carlos-Ed-B/MLCreditAnalysis/blob/master/Documents/image/arquiteturaFluxo.png?raw=true)
 
 ## Modelo de análise de crédito
 Foram desenvolvidos por um cientista dados, dois modelos de análise de crédito em Python, o quais não sabemos detalhes de como foram feitos, nosso objetivo nesta aplicação é realizar o trabalho de engenharia de dados e servir os modelos em containers para serem consumidos pelo frontend da aplicação. Para facilitar o acesso a esse modelo em diversas linguagens, criamos uma api web, a qual publicamos em container Docker no cloud da IBM.
@@ -36,5 +36,5 @@ Após efetuada as regras de negócio, o sistema informa ao usuário se o credito
 
 # Regra de negócio/Fluxo de trabalho
 
-FIGURA 02
+![alt text](https://github.com/Carlos-Ed-B/MLCreditAnalysis/blob/master/Documents/image/negocioFluxo.png?raw=true)
 
